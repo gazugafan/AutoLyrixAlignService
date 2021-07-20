@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>AutoLyrixAlign Service</title>
+	<link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<style>
+		body { padding-top: 50px; }
+	</style>
+</head>
+<body>
+<div class="container">
+	<div class="jumbotron">
+		<h1>AutoLyrixAlign Service</h1>
+		<h4>Upload an audio file and lyrics to align...</h4>
+		<p class="">For best results, use polyphonic audio (both vocals and accompaniment included)</p>
+		<form onsubmit="submit_form()" action="/align" method="post" enctype="multipart/form-data">
+			<div class="custom-file mt-3">
+				<input type="file" class="custom-file-input" name="audio_file" id="audio_file" required>
+				<label class="custom-file-label" for="audio_file">Choose audio file (MP3, WAV, etc)...</label>
+			</div>
+			<div class="form-group mt-3">
+				<label for="lyrics">Lyrics</label>
+				<textarea class="form-control" name="lyrics" id="lyrics" rows="9" placeholder="Paste lyrics here"></textarea>
+			</div>
+			<div class="form-group mt-3">
+				<label>Result Format</label>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="format" id="format_json" value="json">
+					<label class="form-check-label" for="format_json">JSON</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="format" id="format_raw" value="raw">
+					<label class="form-check-label" for="format_raw">Raw Output</label>
+				</div>
+			</div>
+			<button id="submitBtn" type="submit" class="btn btn-primary">Align Lyrics</button>
+			<button id="loadingBtn" type="button" class="btn btn-primary d-none" disabled>
+			  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+			  Aligning...
+			</button>
+		</form>
+	</div>
+</div>
+</body>
+</html>
+
+<script type="text/javascript">
+	let submit_form = function()
+	{
+		document.getElementById('submitBtn').classList.add("d-none");
+		document.getElementById('loadingBtn').classList.remove("d-none");
+	}
+</script>

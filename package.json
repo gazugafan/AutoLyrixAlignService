@@ -1,0 +1,38 @@
+{
+  "name": "autolyrixalignservice",
+  "version": "1.0.0",
+  "description": "An API wrapper for chitralekha18/AutoLyrixAlign",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gazugafan/AutoLyrixAlignService.git"
+  },
+  "author": "gazugafan",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/gazugafan/AutoLyrixAlignService/issues"
+  },
+  "homepage": "https://github.com/gazugafan/AutoLyrixAlignService#readme",
+  "dependencies": {
+    "7zip-bin": "^5.1.1",
+    "axios": "^0.21.1",
+    "axios-cookiejar-support": "^1.0.1",
+    "colors": "^1.4.0",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "get-folder-size": "^2.0.1",
+    "help": "^3.0.2",
+    "md5-file": "^5.0.0",
+    "node-7z": "^2.1.2",
+    "progress": "^2.0.3",
+    "prompts": "^2.4.1",
+    "queue-system": "^3.0.2",
+    "semver": "^7.3.5",
+    "tough-cookie": "^4.0.0",
+    "transliteration": "^2.2.0",
+    "yargs": "^17.0.1"
+  }
+}
