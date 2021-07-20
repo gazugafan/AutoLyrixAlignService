@@ -10,11 +10,12 @@ All the real work is done by the system developed at [chitralekha18/AutoLyrixAli
 * **NodeJS**. I've only tested on **v16**, but I imagine you can probably go as low as **v10**.
 * **Singularity**. If it's not installed, you'll get instructions on how to install it when you run the server. It's used to run the containerized software from [chitralekha18/AutoLyrixAlign](https://github.com/chitralekha18/AutoLyrixAlign) in a reproducible way. Only singularity **v2.5.2** has been tested.
 * **RAM**. [chitralekha18/AutoLyrixAlign](https://github.com/chitralekha18/AutoLyrixAlign) recommends having 20GB of RAM. I've found that it uses closer to 13GB. Your mileage may vary!
-* **Disk Space**. You'll need about 30GB free to automatically download and extract the necessary data files. After the initial setup, about a 13GB footprint will remain used. If you only have closer to 13GB free, you could try downloading and extracting the data file on another computer and copying the 13GB over directly.
+* **Disk Space**. You'll need about 16GB free to automatically download and extract the necessary data files. After the initial setup, about a 13GB footprint will remain used.
 
 ## Installation
 * Clone this repository. `git clone git@github.com:gazugafan/AutoLyrixAlignService.git`
 * Go into the project folder you just cloned. `cd AutoLyrixAlignService`
+* Install JS dependencies. `npm install`
 * Run the server. `node index.js`
 
 **We'll check for the required dependencies when you run the server. If you're missing `singularity`, we'll help you install it. We'll also help download the necessary 13GB of data.*

@@ -161,7 +161,7 @@ async function missing_data(msg)
 	response = await prompts({
 		type: 'confirm',
 		name: 'value',
-		message: colors.yellow('⚠ WARNING:') + ' You\'ll need around 30G of disk space free to download and extract the data. About a 13G footprint will remain after installation. Are you sure you want to continue?'
+		message: colors.yellow('⚠ WARNING:') + ' You\'ll need around 16G of disk space free to download and extract the data. About a 13G footprint will remain after installation. Are you sure you want to continue?'
 	});
 
 	if (!response.value) {
