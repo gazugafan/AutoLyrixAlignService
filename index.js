@@ -1,7 +1,6 @@
 const pjson = require('./package.json');
 const yargs = require('yargs');
 const colors = require('colors/safe');
-const { unlink } = require('fs');
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const { check_dependencies } = require('./dependencies');

@@ -1,6 +1,6 @@
 {
   "name": "autolyrixalignservice",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An API wrapper for chitralekha18/AutoLyrixAlign",
   "main": "index.js",
   "scripts": {
@@ -30,6 +30,7 @@
     "progress": "^2.0.3",
     "prompts": "^2.4.1",
     "queue-system": "^3.0.2",
+    "rimraf": "^3.0.2",
     "semver": "^7.3.5",
     "tough-cookie": "^4.0.0",
     "transliteration": "^2.2.0",

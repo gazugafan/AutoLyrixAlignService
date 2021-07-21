@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const rimraf = require("rimraf");
 const { exec } = require('child_process');
 const colors = require('colors/safe');
 const { queue } = require('./queue');
@@ -104,7 +105,7 @@ async function index(req, res)
 
 			//remove tmp folder and return results...
 			console.log(colors.green('✔') + ' Done!');
-			if (!debug_tmp_folder) fs.rm(tmp_folder_path, { recursive: true }, () => { });
+			if (!debug_tmp_folder) rimraf(tmp_folder_path, () => { });
 			return res.status(200).json(results);
 		}
 		else
@@ -113,14 +114,13 @@ async function index(req, res)
 
 			//remove tmp folder and return raw results...
 			console.log(colors.green('✔') + ' Done!');
-			if (!debug_tmp_folder) fs.rm(tmp_folder_path, { recursive: true }, () => { });
+			if (!debug_tmp_folder) rimraf(tmp_folder_path, () => { });
 			return res.status(200).send(aligned_text);
 		}
 	}
 	catch (err)
 	{
-		throw err;
-		fs.rm(tmp_folder_path, { recursive: true }, () => { });
+		rimraf(tmp_folder_path, () => { });
 		if (err && err.hasOwnProperty('message')) {
 			console.log(colors.red('✖ ' + err.message));
 			return res.status(400).send(err.message);
