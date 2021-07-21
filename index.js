@@ -11,7 +11,8 @@ const align = require('./align');
 const app = express();
 
 app.use(fileUpload({
-	createParentPath: true
+	createParentPath: true,
+	safeFileNames: true
 }));
 
 const argv = yargs
