@@ -158,6 +158,7 @@ async function singularity_install()
 	//extract the tar.gz file...
 	await unzipFile(path.join(__dirname, 'singularity.tar.gz'), path.join(__dirname));
 	await unzipFile(path.join(__dirname, 'singularity.tar'), path.join(__dirname));
+	rimraf(path.join(__dirname, 'PaxHeaders.672'), () => { }); //remove this leftover as well, if it exists
 	const size = await folderSize(path.join(__dirname, 'singularity-2.5.2'));
 	if ((Math.round((size / 1024 / 1024 / 1024) * 100) / 100) !== (Math.round((singularity_folder_size / 1024 / 1024 / 1024) * 100) / 100)) throw new Error('The extracted singularity folder is the wrong size.');
 
