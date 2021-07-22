@@ -288,7 +288,7 @@ async function check_for_data()
 	if (!fs.existsSync(path.join(__dirname, base_name))) await missing_data('The ' + base_name + ' folder is missing.');
 
 	const size = await folderSize(path.join(__dirname, base_name));
-	if ((Math.round((size / 1024 / 1024 / 1024) * 100) / 100) !== (Math.round((folder_size / 1024 / 1024 / 1024) * 100) / 100)) await missing_data('The ' + base_name + ' folder is the wrong size.');
+	if ((Math.round((size / 1024 / 1024 / 1024) * 100) / 100) < (Math.round((folder_size / 1024 / 1024 / 1024) * 100) / 100)) await missing_data('The ' + base_name + ' folder is too small.');
 }
 
 async function check_dependencies(skip = false)
