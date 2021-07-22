@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const rimraf = require("rimraf");
 const sevenBin = require('7zip-bin');
 const { extractFull } = require('node-7z');
 const colors = require('colors/safe');
@@ -20,6 +21,9 @@ const cookieJar = new tough.CookieJar();
 const file_id = '1zJdhPr9SzTVRXIaiZ7eF_QKN0PT2sbIW';
 const file_size = 3926853316;
 const file_md5 = '653d797b5dc7855bd3bd008a6d577b97';
+const singularity_md5 = '2edc1a8ac9a4d7d26fba6244f1c5fd95';
+const singularity_file_size = 820593;
+const singularity_folder_size = 4428694;
 const folder_size = 14093891249;
 const base_name = 'NUSAutoLyrixAlign';
 const file_name = base_name + '.zip';
@@ -38,7 +42,7 @@ async function folderSize(folder)
 	});
 }
 
-async function downloadFile(fileUrl, outputLocationPath)
+async function downloadFile(fileUrl, outputLocationPath, fileSize)
 {
 	const writer = fs.createWriteStream(outputLocationPath);
 
@@ -56,7 +60,7 @@ async function downloadFile(fileUrl, outputLocationPath)
 		head: '>',
 		incomplete: ' ',
 		renderThrottle: 1000,
-		total: parseInt(file_size)
+		total: parseInt(fileSize)
 	});
 
 	response.data.on('data', (chunk) => progressBar.tick(chunk.length));
@@ -130,17 +134,78 @@ function check_binary_version(binary, desired_version = false, options = ' --ver
 	return version;
 }
 
-function singularity_install_instructions()
+async function singularity_install()
 {
-	return `
+	let response = await prompts({
+		type: 'confirm',
+		name: 'value',
+		message: 'Would you like to download singularity v2.5.2 now?'
+	});
+
+	if (!response.value) {
+		throw new Error('singularity is required');
+	}
+
+	console.log('Downloading singularity v2.5.2...');
+	await downloadFile('https://github.com/singularityware/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz', path.join(__dirname, 'singularity.tar.gz'), singularity_file_size);
+
+	//make sure the downloaded file exists and looks good...
+	if (!fs.existsSync(path.join(__dirname, 'singularity.tar.gz'))) throw new Error('Could not download the singularity tar.gz file for some reason.');
+	console.log('Verifying download...');
+	if (md5File.sync(path.join(__dirname, 'singularity.tar.gz')) !== singularity_md5) throw new Error('The downloaded file appears to be corrupt.');
+	console.log(colors.green('✔') + ' Looks good! Extracting the tar.gz file...');
+
+	//extract the tar.gz file...
+	await unzipFile(path.join(__dirname, 'singularity.tar.gz'), path.join(__dirname));
+	await unzipFile(path.join(__dirname, 'singularity.tar'), path.join(__dirname));
+	const size = await folderSize(path.join(__dirname, 'singularity-2.5.2'));
+	if ((Math.round((size / 1024 / 1024 / 1024) * 100) / 100) !== (Math.round((singularity_folder_size / 1024 / 1024 / 1024) * 100) / 100)) throw new Error('The extracted singularity folder is the wrong size.');
+
+	//remove unnecessary tar and tar.gz files...
+	console.log(colors.green("\n✔") + ' Extracted folder looks good! Removing the unnecessary tar and tar.gz files...');
+	fs.unlinkSync(path.join(__dirname, 'singularity.tar.gz'));
+	fs.unlinkSync(path.join(__dirname, 'singularity.tar'));
+	console.log(colors.green('✔') + ' Removed!');
+
+	console.log('');
+	response = await prompts({
+		type: 'confirm',
+		name: 'value',
+		message: 'Older versions of singularity (like this one) have a bug on newer versions of Linux. We recommended applying a patch to fix this, since there\'s no real downside. Apply the patch?'
+	});
+
+	//apply the patch...
+	if (response.value) {
+		console.log('Applying patch...');
+
+		//patch around line 55, from https://github.com/lyklev/singularity/commit/b386e5005aa83df64a7262658713a92645bf3b24#diff-5d7173fff9b106bda935ccde8a9e3981R55...
+		const patch_file = path.join(__dirname, 'singularity-2.5.2', 'src', 'lib', 'image', 'squashfs', 'mount.c');
+		let contents = fs.readFileSync(patch_file, {encoding: 'utf8'});
+		contents = contents.replace(/^\s*if\s*\(\s*singularity_mount.+[\r|\n]/mg, '\tif ( singularity_mount(loop_dev, mount_point, "squashfs", MS_NOSUID|MS_RDONLY|MS_NODEV, NULL) < 0 ) {' + "\n");
+		fs.writeFileSync(patch_file, contents, {encoding: 'utf8'});
+
+		console.log(colors.green('✔') + ' Patched successfully!');
+	}
+
+	console.log('');
+	console.log(colors.green('✔') + ` Okay! We're going to hand control back to you to finish the installation process. Here's what you'll need to do...
+
 -----------------------------------------
-wget https://github.com/singularityware/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz
-tar xvf singularity-2.5.2.tar.gz
 cd singularity-2.5.2
 ./configure --prefix=/usr/local
 make
 sudo make install
------------------------------------------`;
+-----------------------------------------
+
+You might want to copy/paste these commands somewhere for reference.
+The most common problem you'll run into is with missing dependencies.
+You might need to install gcc, g++, make, and other development tools.
+Singularity also has some dependencies you might need to install.
+You can likely install all of these using your OS's package manager.
+When you're done, feel free to delete the singularity-2.5.2 folder.
+`);
+
+	process.exit(0);
 }
 
 async function missing_data(msg)
@@ -185,7 +250,7 @@ async function missing_data(msg)
 				let matches = response.data.match(/confirm=([0-9A-Za-z_]+)/);
 				if (matches.length > 1)
 				{
-					await downloadFile('https://docs.google.com/uc?export=download&confirm=' + matches[1] + '&id=' + file_id, path.join(__dirname, file_name));
+					await downloadFile('https://docs.google.com/uc?export=download&confirm=' + matches[1] + '&id=' + file_id, path.join(__dirname, file_name), file_size);
 				}
 				else
 					throw new Error('Could not find confirmation code.');
@@ -238,19 +303,41 @@ async function check_dependencies(skip = false)
 	else if (os.platform() !== 'linux') throw new Error('This will only work on Linux.');
 
 	//check that singularity is even installed...
+	let singularity_version;
 	try {
-		check_binary_version('singularity');
+		singularity_version = check_binary_version('singularity');
 	} catch(err) {
-		throw new Error(`singularity is not installed
-
-We recommend installing v2.5.2
-Here's how to install it...` + singularity_install_instructions())
+		console.log(colors.red('✖ singularity is not installed. We recommend installing v2.5.2.'));
+		await singularity_install();
 	}
 
 	//singularity IS installed, but is it the right version?
-	let singularity_version;
 	try {
-		singularity_version = check_binary_version('singularity', '2.5.2');
+		check_binary_version('singularity', '2.5.2');
+
+		//the correct version is installed. check to see if the src folder was leftover...
+		if (fs.existsSync(path.join(__dirname, 'singularity-2.5.2')))
+		{
+			const response = await prompts({
+				type: 'confirm',
+				name: 'value',
+				message: 'It looks like the singularity-2.5.2 source code folder is still leftover after installing. It\'s probably no longer needed. Would you like to remove it?'
+			});
+
+			if (response.value) {
+				rimraf.sync(path.join(__dirname, 'singularity-2.5.2'), {}, (err) => {
+					if (err)
+					{
+						if (err.hasOwnProperty('message'))
+							console.log(err.message);
+						else
+							console.log(err);
+
+						console.log(colors.yellow('⚠') + " Couldn't remove singularity source folder. Continuing anyway...");
+					}
+				});
+			}
+		}
 	} catch(err) {
 		const response = await prompts({
 			type: 'confirm',
@@ -259,7 +346,7 @@ Here's how to install it...` + singularity_install_instructions())
 		});
 
 		if (!response.value) {
-			throw new Error('You can install singularity v2.5.2 like this...' + singularity_install_instructions());
+			await singularity_install();
 		}
 	}
 
