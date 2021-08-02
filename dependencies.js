@@ -28,6 +28,21 @@ const folder_size = 14093891249;
 const base_name = 'NUSAutoLyrixAlign';
 const file_name = base_name + '.zip';
 
+function copyDirectory(source, destination)
+{
+	fs.mkdirSync(destination, { recursive: true });
+
+	fs.readdirSync(source, { withFileTypes: true }).forEach((entry) =>
+	{
+		let sourcePath = path.join(source, entry.name);
+		let destinationPath = path.join(destination, entry.name);
+
+		entry.isDirectory()
+			? copyDirectory(sourcePath, destinationPath)
+			: fs.copyFileSync(sourcePath, destinationPath);
+	});
+}
+
 async function folderSize(folder)
 {
 	return new Promise((resolve, reject) => {
@@ -283,12 +298,47 @@ async function missing_data(msg)
 	fs.unlinkSync(path.join(__dirname, file_name));
 }
 
+async function check_for_patch()
+{
+	//check to see if the patch has been applied...
+	if (md5File.sync(path.join(__dirname, 'patch', base_name, 'RunAlignment.sh')) != md5File.sync(path.join(__dirname, base_name, 'RunAlignment.sh')))
+	{
+		response = await prompts({
+			type: 'confirm',
+			name: 'value',
+			message: 'Would you like to patch AutoLyrixAlign to allow multiple alignments to run at once? This is recommended, since there\'s no real downside. Apply the patch?'
+		});
+
+		if (response.value)
+		{
+			try
+			{
+				copyDirectory(path.join(__dirname, 'patch', base_name), path.join(__dirname, base_name))
+				if (md5File.sync(path.join(__dirname, 'patch', base_name, 'RunAlignment.sh')) == md5File.sync(path.join(__dirname, base_name, 'RunAlignment.sh')))
+					console.log(colors.green('✔') + ' Patch applied successfully!');
+				else
+					throw Error('We tried to apply the patch, but something seems to have gone wrong.');
+			}
+			catch(err)
+			{
+				throw Error('Could not apply the AutoLyrixAlign patch... ' + err.message);
+			}
+		}
+		else
+		{
+			console.log(colors.yellow('⚠ WARNING:') + ' The patch has NOT been applied. Running concurrent alignments will not work properly. Don\'t use the --concurrency option!');
+		}
+	}
+}
+
 async function check_for_data()
 {
 	if (!fs.existsSync(path.join(__dirname, base_name))) await missing_data('The ' + base_name + ' folder is missing.');
 
 	const size = await folderSize(path.join(__dirname, base_name));
 	if ((Math.round((size / 1024 / 1024 / 1024) * 100) / 100) < (Math.round((folder_size / 1024 / 1024 / 1024) * 100) / 100)) await missing_data('The ' + base_name + ' folder is too small.');
+
+	await check_for_patch();
 }
 
 async function check_dependencies(skip = false)
