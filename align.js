@@ -37,7 +37,7 @@ async function index(req, res)
 	let lyrics = req.body.lyrics;
 	lyrics = lyrics.replace(/^\[.*\][\r\n]/mg, ''); //remove song part identifier lines like [Chorus]
 	lyrics = lyrics.replace(/\*[^\n\r]+\*/mg, ' '); //remove things like *breathes*
-	lyrics = lyrics.replace(/\([^\n\r]+\)/mg, ' '); //remove things like (woo)
+	lyrics = lyrics.replace(/\([^\n\r\)]+\)/mg, ' '); //remove things like (woo)
 	lyrics = lyrics.replace(/\s/mg, ' '); //change all white-space characters to a normal space
 	lyrics = lyrics.replace(/\p{Pd}+/mg, ' '); //replace dashes, hyphens, etc with a space
 	lyrics = lyrics.replace(/`/mg, '\''); //replace backtick with single quote
@@ -215,7 +215,7 @@ function compile_json(original_lyrics, aligned_text)
 		}
 
 		//split by spaces or things like *breathes* or (woo woo), with the delimiters included in the results...
-		let words = line.split(/(\*.+\*|\(.+\)| )/);
+		let words = line.split(/(\*.+\*|\([^\)\n\r]+\)| )/);
 		words.forEach(word =>
 		{
 			word = word.trim();
@@ -227,7 +227,7 @@ function compile_json(original_lyrics, aligned_text)
 			}
 
 			//if this is something like *breathes* or (woo), include it in the results with no timestamp...
-			if (word.match(/\*.+\*|\(.+\)/) !== null)
+			if (word.match(/\*.+\*|\([^\)\n\r]+\)/) !== null)
 			{
 				compiled_line.push({
 					word: word,
